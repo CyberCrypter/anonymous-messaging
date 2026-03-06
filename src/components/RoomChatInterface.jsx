@@ -1,16 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Message from './Message';
 
-const ChatInterface = ({
-    remotePeerId,
+const RoomChatInterface = ({
+    peerId,
+    roomId,
+    isHost,
     messages,
-    remoteTypingText,
+    members,
+    remoteTypingTexts,
     onSendMessage,
     onTypingUpdate,
-    onDisconnect
+    onLeaveRoom,
 }) => {
     const [inputText, setInputText] = useState('');
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [copied, setCopied] = useState(false);
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
 
@@ -20,7 +24,7 @@ const ChatInterface = ({
 
     useEffect(() => {
         scrollToBottom();
-    }, [messages, remoteTypingText]);
+    }, [messages, remoteTypingTexts]);
 
     const handleInputChange = (e) => {
         const text = e.target.value;
@@ -31,13 +35,12 @@ const ChatInterface = ({
     const handleSendText = () => {
         if (inputText.trim()) {
             const messageData = {
-                type: 'text',
                 content: inputText.trim(),
                 timestamp: Date.now(),
             };
             onSendMessage(messageData);
             setInputText('');
-            onTypingUpdate(''); // Clear typing status
+            onTypingUpdate('');
         }
     };
 
@@ -70,41 +73,77 @@ const ChatInterface = ({
         fileInputRef.current.value = '';
     };
 
+    const copyRoomId = () => {
+        navigator.clipboard.writeText(roomId);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const activeTypers = Object.entries(remoteTypingTexts).filter(([, text]) => text);
+
     return (
         <div className="chat-interface">
-            <div className="chat-header">
+            <div className="chat-header room-header">
                 <div className="header-info">
                     <div className="status-indicator"></div>
                     <div>
-                        <h2>Connected</h2>
-                        <p className="peer-id">Peer: {remotePeerId.substring(0, 12)}...</p>
+                        <h2>
+                            Secure Room
+                            {isHost && <span className="host-badge">HOST</span>}
+                        </h2>
+                        <div className="room-meta">
+                            <span
+                                className="room-id-display"
+                                onClick={copyRoomId}
+                                title="Click to copy Room ID"
+                            >
+                                🔑 {roomId.substring(0, 10)}... {copied ? '✓' : '📋'}
+                            </span>
+                            <span className="member-count">👥 {members.length + 1}</span>
+                        </div>
                     </div>
                 </div>
-                <button className="disconnect-btn" onClick={onDisconnect}>
-                    Disconnect
+                <button className="disconnect-btn" onClick={onLeaveRoom}>
+                    {isHost ? 'Destroy Room' : 'Leave Room'}
                 </button>
             </div>
 
             <div className="messages-container">
-                {messages.length === 0 && !remoteTypingText ? (
+                {messages.length === 0 && activeTypers.length === 0 ? (
                     <div className="empty-state">
-                        <div className="empty-icon">💬</div>
-                        <p>No messages yet</p>
-                        <p className="empty-hint">Send a message to start chatting!</p>
+                        <div className="empty-icon">🏠</div>
+                        <p>Secure Room Active</p>
+                        <p className="empty-hint">
+                            {isHost
+                                ? 'Share the Room ID for others to join!'
+                                : 'Send a message to start chatting!'}
+                        </p>
                     </div>
                 ) : (
                     <>
                         {messages.map((msg, index) => (
-                            <Message key={index} message={msg} isSent={msg.isSent} />
+                            <Message
+                                key={`${msg.timestamp}-${index}`}
+                                message={msg}
+                                isSent={msg.isSent}
+                                senderLabel={
+                                    !msg.isSent && msg.from
+                                        ? msg.from.substring(0, 6)
+                                        : null
+                                }
+                            />
                         ))}
-                        {remoteTypingText && (
-                            <div className="message received typing-preview">
+                        {activeTypers.map(([typerId, text]) => (
+                            <div key={typerId} className="message received typing-preview">
                                 <div className="message-content">
-                                    <p className="message-text typing-text">{remoteTypingText}<span className="cursor">|</span></p>
+                                    <span className="sender-label">{typerId.substring(0, 6)}</span>
+                                    <p className="message-text typing-text">
+                                        {text}<span className="cursor">|</span>
+                                    </p>
                                     <span className="message-time">Typing...</span>
                                 </div>
                             </div>
-                        )}
+                        ))}
                     </>
                 )}
                 <div ref={messagesEndRef} />
@@ -161,4 +200,4 @@ const ChatInterface = ({
     );
 };
 
-export default ChatInterface;
+export default RoomChatInterface;

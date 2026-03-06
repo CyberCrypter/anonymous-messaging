@@ -697,3 +697,127 @@ input[type="text"]::placeholder,
     opacity: 0;
   }
 }
+
+/* Secure Room Styles */
+.room-section {
+  margin-bottom: 32px;
+}
+
+.room-options {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.room-create,
+.room-join {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.room-create .help-text {
+  margin-bottom: 8px;
+}
+
+.create-room-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+}
+
+.create-room-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+.create-room-btn:active {
+  transform: translateY(0);
+}
+
+.create-room-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Room Chat Header */
+.room-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.host-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
+  vertical-align: middle;
+}
+
+.room-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.room-id-display {
+  font-size: 12px;
+  color: var(--accent-primary);
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.room-id-display:hover {
+  color: var(--accent-secondary);
+}
+
+.member-count {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Sender label for group messages */
+.sender-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-secondary);
+  margin-bottom: 4px;
+  letter-spacing: 0.3px;
+}
+
+.message.sent .sender-label {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Mobile adjustments for room section */
+@media (max-width: 480px) {
+  .room-section {
+    margin-bottom: 24px;
+  }
+
+  .create-room-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+
+  .room-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}

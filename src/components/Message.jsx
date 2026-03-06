@@ -1,7 +1,8 @@
 import React from 'react';
 
-const Message = ({ message, isSent }) => {
+const Message = ({ message, isSent, senderLabel }) => {
     const { type, content, timestamp } = message;
+    const msgType = type === 'photo' ? 'photo' : 'text';
 
     const formatTime = (ts) => {
         const date = new Date(ts);
@@ -14,9 +15,12 @@ const Message = ({ message, isSent }) => {
     return (
         <div className={`message ${isSent ? 'sent' : 'received'}`}>
             <div className="message-content">
-                {type === 'text' ? (
+                {senderLabel && (
+                    <span className="sender-label">{senderLabel}</span>
+                )}
+                {msgType === 'text' ? (
                     <p className="message-text">{content}</p>
-                ) : type === 'photo' ? (
+                ) : msgType === 'photo' ? (
                     <div className="message-photo">
                         <img src={content} alt="Shared photo" />
                     </div>

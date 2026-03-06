@@ -1,7 +1,9 @@
 import React from 'react';
 import { usePeerConnection } from './hooks/usePeerConnection';
+import { usePeerRoom } from './hooks/usePeerRoom';
 import ConnectionScreen from './components/ConnectionScreen';
 import ChatInterface from './components/ChatInterface';
+import RoomChatInterface from './components/RoomChatInterface';
 import './App.css';
 
 function App() {
@@ -17,10 +19,44 @@ function App() {
     disconnect,
   } = usePeerConnection();
 
+  const {
+    peerId: roomPeerId,
+    roomId,
+    isHost,
+    isInRoom,
+    messages: roomMessages,
+    members,
+    remoteTypingTexts,
+    createRoom,
+    joinRoom,
+    sendRoomMessage,
+    sendRoomTypingUpdate,
+    leaveRoom,
+  } = usePeerRoom();
+
+  const activePeerId = peerId || roomPeerId;
+
   return (
     <div className="app">
-      {!isConnected ? (
-        <ConnectionScreen peerId={peerId} onConnect={connectToPeer} />
+      {isInRoom ? (
+        <RoomChatInterface
+          peerId={roomPeerId}
+          roomId={roomId}
+          isHost={isHost}
+          messages={roomMessages}
+          members={members}
+          remoteTypingTexts={remoteTypingTexts}
+          onSendMessage={sendRoomMessage}
+          onTypingUpdate={sendRoomTypingUpdate}
+          onLeaveRoom={leaveRoom}
+        />
+      ) : !isConnected ? (
+        <ConnectionScreen
+          peerId={activePeerId}
+          onConnect={connectToPeer}
+          onCreateRoom={createRoom}
+          onJoinRoom={joinRoom}
+        />
       ) : (
         <ChatInterface
           remotePeerId={remotePeerId}
