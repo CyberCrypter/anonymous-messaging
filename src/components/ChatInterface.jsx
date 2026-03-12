@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Message from './Message';
+import VoiceCallInterface from './VoiceCallInterface';
+import { useVoiceCall } from '../hooks/useVoiceCall';
 
 const ChatInterface = ({
     remotePeerId,
@@ -7,12 +9,45 @@ const ChatInterface = ({
     remoteTypingText,
     onSendMessage,
     onTypingUpdate,
-    onDisconnect
+    onDisconnect,
+    peerInstance
 }) => {
     const [inputText, setInputText] = useState('');
     const [photoPreview, setPhotoPreview] = useState(null);
+    const [callStatus, setCallStatus] = useState('');
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
+
+    // Voice call functionality
+    const {
+        callState,
+        isAudioEnabled,
+        callDuration,
+        callerInfo,
+        localAudioRef,
+        remoteAudioRef,
+        initiateCall,
+        answerCall,
+        rejectCall,
+        endCall,
+        toggleAudio,
+        isCallActive,
+        isIncomingCall,
+        isOutgoingCall,
+    } = useVoiceCall(peerInstance, (status, peerId) => {
+        console.log('Call status changed:', status, peerId);
+        setCallStatus(status);
+    });
+
+    // Debug logging
+    useEffect(() => {
+        console.log('ChatInterface Debug:', { 
+            peerInstance: !!peerInstance, 
+            remotePeerId, 
+            callState, 
+            isCallActive 
+        });
+    }, [peerInstance, remotePeerId, callState, isCallActive]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -78,12 +113,64 @@ const ChatInterface = ({
                     <div>
                         <h2>Connected</h2>
                         <p className="peer-id">Peer: {remotePeerId.substring(0, 12)}...</p>
+                        {callStatus && callStatus !== 'idle' && (
+                            <p className="call-status-text">Call: {callStatus}</p>
+                        )}
                     </div>
                 </div>
-                <button className="disconnect-btn" onClick={onDisconnect}>
-                    Disconnect
-                </button>
+                <div className="header-actions">
+                    <button 
+                        className="voice-call-btn" 
+                        onClick={() => {
+                            console.log('Voice call button clicked!', { peerInstance, remotePeerId, callState });
+                            if (peerInstance && remotePeerId) {
+                                try {
+                                    initiateCall(remotePeerId);
+                                } catch (error) {
+                                    console.error('Failed to initiate call:', error);
+                                    alert('Failed to start call. Please check microphone permissions.');
+                                }
+                            } else {
+                                console.error('Missing peerInstance or remotePeerId');
+                                alert('Connection not ready for calling');
+                            }
+                        }}
+                        title="Start voice call"
+                        style={{ 
+                            display: 'flex',
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            alignItems: 'center',
+                            gap: '4px'
+                        }}
+                    >
+                        📞 Call
+                    </button>
+                    <button className="disconnect-btn" onClick={onDisconnect}>
+                        Disconnect
+                    </button>
+                </div>
             </div>
+
+            <VoiceCallInterface
+                callState={callState}
+                isAudioEnabled={isAudioEnabled}
+                callDuration={callDuration}
+                callerInfo={callerInfo}
+                remotePeerId={remotePeerId}
+                localAudioRef={localAudioRef}
+                remoteAudioRef={remoteAudioRef}
+                onAnswerCall={answerCall}
+                onRejectCall={rejectCall}
+                onEndCall={endCall}
+                onToggleAudio={toggleAudio}
+            />
 
             <div className="messages-container">
                 {messages.length === 0 && !remoteTypingText ? (

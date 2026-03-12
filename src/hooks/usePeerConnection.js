@@ -120,5 +120,6 @@ export const usePeerConnection = () => {
     sendMessage,
     sendTypingUpdate,
     disconnect,
+    peerInstance: peerInstance.current, // Expose peerInstance for voice calls
   };
 };

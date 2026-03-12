@@ -17,6 +17,7 @@ function App() {
     sendMessage,
     sendTypingUpdate,
     disconnect,
+    peerInstance,
   } = usePeerConnection();
 
   const {
@@ -32,6 +33,7 @@ function App() {
     sendRoomMessage,
     sendRoomTypingUpdate,
     leaveRoom,
+    peerInstance: roomPeerInstance,
   } = usePeerRoom();
 
   const activePeerId = peerId || roomPeerId;
@@ -49,6 +51,7 @@ function App() {
           onSendMessage={sendRoomMessage}
           onTypingUpdate={sendRoomTypingUpdate}
           onLeaveRoom={leaveRoom}
+          peerInstance={roomPeerInstance}
         />
       ) : !isConnected ? (
         <ConnectionScreen
@@ -65,6 +68,7 @@ function App() {
           onSendMessage={sendMessage}
           onTypingUpdate={sendTypingUpdate}
           onDisconnect={disconnect}
+          peerInstance={peerInstance}
         />
       )}
     </div>

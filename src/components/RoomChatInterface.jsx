@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Message from './Message';
+import VoiceCallInterface from './VoiceCallInterface';
+import { useVoiceCall } from '../hooks/useVoiceCall';
 
 const RoomChatInterface = ({
     peerId,
@@ -11,12 +13,35 @@ const RoomChatInterface = ({
     onSendMessage,
     onTypingUpdate,
     onLeaveRoom,
+    peerInstance,
 }) => {
     const [inputText, setInputText] = useState('');
     const [photoPreview, setPhotoPreview] = useState(null);
     const [copied, setCopied] = useState(false);
+    const [voiceChannelMembers, setVoiceChannelMembers] = useState([]);
+    const [callStatus, setCallStatus] = useState('');
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
+
+    // Voice call functionality for room
+    const {
+        callState,
+        isAudioEnabled,
+        callDuration,
+        callerInfo,
+        localAudioRef,
+        remoteAudioRef,
+        initiateCall,
+        answerCall,
+        rejectCall,
+        endCall,
+        toggleAudio,
+        isCallActive,
+        isIncomingCall,
+        isOutgoingCall,
+    } = useVoiceCall(peerInstance, (status, peerId) => {
+        setCallStatus(status);
+    });
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -100,13 +125,69 @@ const RoomChatInterface = ({
                                 🔑 {roomId.substring(0, 10)}... {copied ? '✓' : '📋'}
                             </span>
                             <span className="member-count">👥 {members.length + 1}</span>
+                            {voiceChannelMembers.length > 0 && (
+                                <span className="voice-count">🔊 {voiceChannelMembers.length}</span>
+                            )}
                         </div>
+                        {callStatus && callStatus !== 'idle' && (
+                            <p className="call-status-text">Voice: {callStatus}</p>
+                        )}
                     </div>
                 </div>
-                <button className="disconnect-btn" onClick={onLeaveRoom}>
-                    {isHost ? 'Destroy Room' : 'Leave Room'}
-                </button>
+                <div className="header-actions">
+                    <button 
+                        className="voice-channel-btn" 
+                        onClick={() => {
+                            console.log('Voice channel button clicked!', { peerInstance, members, callState });
+                            // For room calls, we'll call the first available member
+                            const targetMember = members[0];
+                            if (targetMember && peerInstance) {
+                                try {
+                                    initiateCall(targetMember);
+                                } catch (error) {
+                                    console.error('Failed to initiate call:', error);
+                                    alert('Failed to start call. Please check microphone permissions.');
+                                }
+                            } else {
+                                alert('No members available to call or connection not ready');
+                            }
+                        }}
+                        title="Join voice channel"
+                        style={{ 
+                            display: members.length > 0 ? 'flex' : 'none',
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            alignItems: 'center',
+                            gap: '4px'
+                        }}
+                    >
+                        🔊 Voice
+                    </button>
+                    <button className="disconnect-btn" onClick={onLeaveRoom}>
+                        {isHost ? 'Destroy Room' : 'Leave Room'}
+                    </button>
+                </div>
             </div>
+
+            <VoiceCallInterface
+                callState={callState}
+                isAudioEnabled={isAudioEnabled}
+                callDuration={callDuration}
+                callerInfo={callerInfo}
+                remotePeerId={members[0]} // For simplicity, using first member
+                localAudioRef={localAudioRef}
+                remoteAudioRef={remoteAudioRef}
+                onAnswerCall={answerCall}
+                onRejectCall={rejectCall}
+                onEndCall={endCall}
+                onToggleAudio={toggleAudio}
+            />
 
             <div className="messages-container">
                 {messages.length === 0 && activeTypers.length === 0 ? (

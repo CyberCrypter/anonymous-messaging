@@ -242,5 +242,6 @@ export const usePeerRoom = () => {
     sendRoomMessage,
     sendRoomTypingUpdate,
     leaveRoom,
+    peerInstance: peerInstance.current, // Expose peerInstance for voice calls
   };
 };
