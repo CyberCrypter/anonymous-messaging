@@ -9,10 +9,12 @@ import './App.css';
 function App() {
   const {
     peerId,
+    inviteCode,
     remotePeerId,
     isConnected,
     messages,
     remoteTypingText,
+    connectionError,
     connectToPeer,
     sendMessage,
     sendTypingUpdate,
@@ -56,6 +58,8 @@ function App() {
       ) : !isConnected ? (
         <ConnectionScreen
           peerId={activePeerId}
+          secureConnectCode={inviteCode}
+          connectionError={connectionError}
           onConnect={connectToPeer}
           onCreateRoom={createRoom}
           onJoinRoom={joinRoom}

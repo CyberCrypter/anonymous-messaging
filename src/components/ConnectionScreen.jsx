@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 
-const ConnectionScreen = ({ peerId, onConnect, onCreateRoom, onJoinRoom }) => {
+const ConnectionScreen = ({
+    peerId,
+    secureConnectCode,
+    connectionError,
+    onConnect,
+    onCreateRoom,
+    onJoinRoom,
+}) => {
     const [inputPeerId, setInputPeerId] = useState('');
     const [roomIdInput, setRoomIdInput] = useState('');
     const [copied, setCopied] = useState(false);
@@ -18,7 +25,7 @@ const ConnectionScreen = ({ peerId, onConnect, onCreateRoom, onJoinRoom }) => {
     };
 
     const copyToClipboard = () => {
-        navigator.clipboard.writeText(peerId);
+        navigator.clipboard.writeText(secureConnectCode);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -33,10 +40,10 @@ const ConnectionScreen = ({ peerId, onConnect, onCreateRoom, onJoinRoom }) => {
                 </div>
 
                 <div className="id-section">
-                    <label>Your Peer ID</label>
+                    <label>Your Secure Connect Code</label>
                     <div className="id-display">
-                        <code>{peerId || 'Generating...'}</code>
-                        {peerId && (
+                        <code>{secureConnectCode || 'Generating secure code...'}</code>
+                        {secureConnectCode && (
                             <button
                                 className="copy-btn"
                                 onClick={copyToClipboard}
@@ -46,7 +53,7 @@ const ConnectionScreen = ({ peerId, onConnect, onCreateRoom, onJoinRoom }) => {
                             </button>
                         )}
                     </div>
-                    <p className="help-text">Share this ID with your peer to connect</p>
+                    <p className="help-text">Share this peerId (one-time use)</p>
                 </div>
 
                 <div className="divider">
@@ -58,20 +65,25 @@ const ConnectionScreen = ({ peerId, onConnect, onCreateRoom, onJoinRoom }) => {
                     <div className="input-group">
                         <input
                             type="text"
-                            placeholder="Enter peer ID"
+                            placeholder="Paste peerId"
                             value={inputPeerId}
                             onChange={(e) => setInputPeerId(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleConnect()}
-                            disabled={!peerId}
+                            disabled={!secureConnectCode}
                         />
                         <button
                             className="connect-btn"
                             onClick={handleConnect}
-                            disabled={!peerId || !inputPeerId.trim()}
+                            disabled={!secureConnectCode || !inputPeerId.trim()}
                         >
                             Connect
                         </button>
                     </div>
+                    {connectionError && (
+                        <p className="help-text" style={{ color: '#ef4444', marginTop: '8px' }}>
+                            {connectionError}
+                        </p>
+                    )}
                 </div>
 
                 <div className="divider">
